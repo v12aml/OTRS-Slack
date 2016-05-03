@@ -8,6 +8,7 @@ use strict;
 use warnings;
 
 use LWP::UserAgent;
+use HTTP::Request::Common;
 
 our @ObjectDependencies = qw(
     Kernel::Config
@@ -60,14 +61,6 @@ sub Run {
     $req->content($post_data);
 
     my $resp = $ua->request($req);
-    if ($resp->is_success) {
-        my $message = $resp->decoded_content;
-        print "Received reply: $message\n";
-    }
-    else {
-        print "HTTP POST error code: ", $resp->code, "\n";
-        print "HTTP POST error message: ", $resp->message, "\n";
-    }
 
 
     return 1;
