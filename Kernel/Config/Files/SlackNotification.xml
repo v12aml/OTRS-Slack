@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<otrs_config version="1.0" init="Application">
+  <ConfigItem Name="SlackNotification::WebhookURL" Required="0" Valid="1">
+      <Description Translatable="1">Slack Webhook URL</Description>
+      <Group>TicketSlackNotification</Group>
+      <SubGroup>Slack::API</SubGroup>
+      <Setting>
+          <String Regex="">test</String>
+      </Setting>
+  </ConfigItem>
+  <ConfigItem Name="SlackNotification::BotName" Required="0" Valid="1">
+      <Description Translatable="1">Slack name for Notify</Description>
+      <Group>TicketSlackNotification</Group>
+      <SubGroup>Slack::API</SubGroup>
+      <Setting>
+          <String Regex="">OTRS</String>
+      </Setting>
+  </ConfigItem>
+  <ConfigItem Name="SlackNotification::Icon" Required="0" Valid="1">
+      <Description Translatable="1">Icon for Notify</Description>
+      <Group>TicketSlackNotification</Group>
+      <SubGroup>Slack::API</SubGroup>
+      <Setting>
+          <String Regex="">:ghost:</String>
+      </Setting>
+  </ConfigItem>
+
+  <ConfigItem Name="Ticket::EventModulePost###111-SlackNotification" Required="0" Valid="1">
+      <Description Translatable="1">Sends Slack notification.</Description>
+      <Group>Ticket</Group>
+      <SubGroup>Core::Ticket</SubGroup>
+      <Setting>
+          <Hash>
+              <Item Key="Module">Kernel::System::Ticket::Event::SlackNotification</Item>
+              <Item Key="Event">(ArticleCreate)</Item>
+          </Hash>
+      </Setting>
+  </ConfigItem>
+
+</otrs_config>
