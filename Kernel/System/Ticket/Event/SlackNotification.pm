@@ -37,44 +37,11 @@ sub Run {
         Message  => 'Run SlackNotification event module',
     );
 
-    # check needed stuff
-    for my $NeededParam (qw(Event Data Config UserID)) {
-        if ( !$Param{$NeededParam} ) {
-            $LogObject->Log(
-                Priority => 'error',
-                Message  => "Need $NeededParam!",
-            );
-            return;
-        }
-    }
-
-    for my $NeededData (qw(TicketID ArticleID)) {
-        if ( !$Param{Data}->{$NeededData} ) {
-            $LogObject->Log(
-                Priority => 'error',
-                Message  => "Need $NeededData in Data!",
-            );
-            return;
-        }
-    }
-
     # get ticket attribute matches
     my %Ticket = $TicketObject->TicketGet(
         TicketID => $Param{Data}->{TicketID},
         UserID   => 1,
     );
-    my %Article = $TicketObject->ArticleFirstArticle(
-        TicketID => $Param{Data}->{TicketID},
-    );
-
-    $LogObject->Log(
-        Priority => 'notice',
-        Message => 'Sender-/ArticleType: ' . join '::', @Article{qw(SenderType ArticleType)},
-    );
-
-    return 1 if $Article{ArticleID} != $Param{Data}->{ArticleID};
-    return 1 if $Article{SenderType} ne 'customer' || $Article{ArticleType} ne 'email-external';
-
 
     my $WebhookURL   = $ConfigObject->Get( 'SlackNotification::WebhookURL' );
     my $BotName = $ConfigObject->Get( 'SlackNotification::BotName' );
@@ -88,7 +55,7 @@ sub Run {
     my $post_data = "{
       \"username\": \"$BotName\",
       \"icon_emoji\": \"$Icon\",
-      \"text\": \"New ticket <http://otrs.podium-market.com/otrs/index.pl?Action=AgentTicketZoom;TicketID=$Ticket{TicketID}|$Ticket{TicketID}> $Article{Subject}\", 
+      \"text\": \"New ticket <http://otrs.podium-market.com/otrs/index.pl?Action=AgentTicketZoom;TicketID=$Ticket{TicketID}|$Ticket{TicketID}>\",
     }";
     $req->content($post_data);
 
