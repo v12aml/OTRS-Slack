@@ -7,6 +7,8 @@ package Kernel::System::Ticket::Event::SlackNotification;
 use strict;
 use warnings;
 
+$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+
 use LWP::UserAgent;
 use HTTP::Request::Common;
 
@@ -38,6 +40,27 @@ sub Run {
         Message  => 'Run SlackNotification event module',
     );
 
+    # check needed stuff
+    for my $NeededParam (qw(Event Data Config UserID)) {
+        if ( !$Param{$NeededParam} ) {
+            $LogObject->Log(
+                Priority => 'error',
+                Message  => "Need $NeededParam!",
+            );
+            return;
+        }
+    }
+
+    for my $NeededData (qw(TicketID ArticleID)) {
+        if ( !$Param{Data}->{$NeededData} ) {
+            $LogObject->Log(
+                Priority => 'error',
+                Message  => "Need $NeededData in Data!",
+            );
+            return;
+        }
+    }
+
     # get ticket attribute matches
     my %Ticket = $TicketObject->TicketGet(
         TicketID => $Param{Data}->{TicketID},
@@ -47,6 +70,7 @@ sub Run {
     my $WebhookURL   = $ConfigObject->Get( 'SlackNotification::WebhookURL' );
     my $BotName = $ConfigObject->Get( 'SlackNotification::BotName' );
     my $Icon   = $ConfigObject->Get( 'SlackNotification::Icon' );
+    my $SlackChannel = $ConfigObject->Get( 'SlackNotification::SlackChannel' );
 
     my $ua = LWP::UserAgent->new;
     my $req = HTTP::Request->new(POST => $WebhookURL);
@@ -56,12 +80,29 @@ sub Run {
     my $post_data = "{
       \"username\": \"$BotName\",
       \"icon_emoji\": \"$Icon\",
+      \"channel\": \"$SlackChannel\",
       \"text\": \"New ticket <http://otrs.podium-market.com/otrs/index.pl?Action=AgentTicketZoom;TicketID=$Ticket{TicketID}|$Ticket{TicketID}>\",
     }";
     $req->content($post_data);
 
     my $resp = $ua->request($req);
-
+    if ($resp->is_success) {
+      my $message = $resp->decoded_content;
+      $LogObject->Log(
+          Priority => 'notice',
+          Message  => "Run SlackNotification event module,Received reply: $message" ,
+      );
+    }
+    else {
+      $LogObject->Log(
+        Priority => 'notice',
+        Message  => "RHTTP POST error code: $resp->code" ,
+      );
+      $LogObject->Log(
+        Priority => 'notice',
+        Message  => "RHTTP POST error message: $resp->message" ,
+      );
+    }
 
     return 1;
 }
